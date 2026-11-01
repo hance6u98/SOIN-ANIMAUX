@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registre des soins</title>
+<meta name="theme-color" content="#2f5d3a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f2ea; --card:#fffdf8; --ink:#1f2a22; --muted:#66705f; --line:#ddd6c6;
+  --green:#2f5d3a; --green-2:#3f7a4c; --green-soft:#e3eddf;
+  --ochre:#b7791f; --ochre-soft:#fbefd9; --red:#b23a2e; --red-soft:#f8e1dd;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:18px;line-height:1.35}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:var(--green);color:#fff;display:flex;align-items:center;gap:12px;padding:12px 20px}
+header h1{font-size:21px;margin:0;flex:1;letter-spacing:.2px}
+#sync{font-size:14px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.15)}
+#sync.warn{background:var(--ochre)}
+main{max-width:1100px;margin:0 auto;padding:20px 20px 120px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav a{flex:1;max-width:190px;text-align:center;text-decoration:none;color:var(--muted);padding:8px 4px;border-radius:12px;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav a svg{width:28px;height:28px}
+nav a.on{color:var(--green);background:var(--green-soft);font-weight:700}
+nav a.plus{color:#fff;background:var(--green-2)}
+nav a.plus.on{background:var(--green);color:#fff}
+h2{font-size:24px;margin:4px 0 16px}
+h3{font-size:19px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+@media(min-width:760px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}}
+.big-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:84px;border:0;border-radius:var(--r);background:var(--green-2);color:#fff;font-size:24px;font-weight:700;cursor:pointer}
+.btn{min-height:52px;padding:0 20px;border-radius:12px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:700}
+.btn.pri{background:var(--green-2);border-color:var(--green-2);color:#fff}
+.btn.danger{color:var(--red);border-color:#e6b9b2}
+.btn.sm{min-height:42px;padding:0 14px;font-size:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spacer{flex:1}
+label.f{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:6px}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;min-height:54px;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:3px solid #9cc3a4;border-color:var(--green-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:48px;padding:0 16px;border-radius:99px;border:1.5px solid var(--line);background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+.chip .x{font-size:20px;line-height:1}
+.stat{font-size:34px;font-weight:700;color:var(--green)}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.badge{display:inline-block;white-space:nowrap;font-size:14px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--green-soft);color:var(--green)}
+.badge.red{background:var(--red-soft);color:var(--red)}
+.badge.ochre{background:var(--ochre-soft);color:#8a5a12}
+.list .item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+.list .item:first-child{border-top:0}
+.item .main{flex:1;min-width:0}
+.item>div:last-child{flex-shrink:0}
+a.btn{color:var(--ink)}
+.item .t{font-weight:700}
+.tap{cursor:pointer}
+.sugg{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:6px;max-height:280px;overflow:auto}
+.sugg button{display:block;width:100%;text-align:left;padding:14px;border:0;border-top:1px solid var(--line);background:none;cursor:pointer}
+.sugg button:first-child{border-top:0}
+.sugg button:hover{background:var(--green-soft)}
+.sec{margin-top:18px}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+#toast.show{opacity:1}
+#overlay{position:fixed;inset:0;background:rgba(20,28,22,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+#overlay.open{display:flex}
+#sheet{background:var(--paper);width:100%;max-width:860px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:22px}
+@media(min-width:760px){#overlay{align-items:center}#sheet{border-radius:20px}}
+.datehead{font-size:15px;font-weight:700;color:var(--muted);text-transform:capitalize;margin:18px 0 6px}
+.banner{background:var(--ochre-soft);border:1px solid #ecd3a4;color:#6e4a10;border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:16px}
+.kv span:nth-child(odd){color:var(--muted)}
+.boxgrid{display:grid;gap:10px}
+@media(min-width:760px){.boxgrid{grid-template-columns:repeat(3,1fr)}}
+.bat{border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}
+.batbtn{width:100%;justify-content:center;margin-bottom:6px}
+.boxes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.boxbtn{justify-content:center;flex-direction:column;gap:0;padding:4px;border-radius:10px;min-height:56px}
+.boxbtn:disabled{opacity:.4}
+.plan{display:grid;gap:12px}
+@media(min-width:760px){.plan{grid-template-columns:repeat(3,1fr)}}
+.planbat{border:2px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.planhead{width:100%;border:0;background:var(--green-soft);color:var(--green);font-weight:700;padding:12px;cursor:pointer;font-size:17px}
+.planhead.on{background:var(--green);color:#fff}
+.planboxes{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.planbox{border:0;background:#fff;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+.planbox.on{background:var(--green-2);color:#fff}
+.pb-code{font-size:14px;color:var(--muted);font-weight:700}.planbox.on .pb-code{color:#e3eddf}
+.pb-n{font-size:26px;font-weight:700}
+pre.csv{white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7c0-2 1.5-3 3-3l2 2h6l2-2c1.5 0 3 1 3 3"/><path d="M6 8v5a6 6 0 0 0 12 0V8"/><path d="M10 15h.01M14 15h.01"/></svg>
+  <h1>Registre des soins</h1>
+  <span id="sync">Chargement…</span>
+</header>
+<main id="main"></main>
+<nav id="nav">
+  <a href="#accueil" data-r="accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a>
+  <a href="#nouveau" data-r="nouveau" class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>Nouveau soin</a>
+  <a href="#registre" data-r="registre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg>Registre</a>
+  <a href="#animaux" data-r="animaux"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7c0-2 1.5-3 3-3l2 2h6l2-2c1.5 0 3 1 3 3"/><path d="M6 8v5a6 6 0 0 0 12 0V8"/></svg>Animaux</a>
+  <a href="#pharmacie" data-r="pharmacie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M9 6V4h6v2M12 10v6M9 13h6"/></svg>Pharmacie</a>
+</nav>
+<div id="overlay"><div id="sheet"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ============ Utilitaires ============ */
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+const today = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const addDays = (iso, n) => { const [y,m,d] = iso.split("-").map(Number); const t = new Date(Date.UTC(y,m-1,d+n)); return t.toISOString().slice(0,10); };
+const diffDays = (a, b) => Math.round((Date.parse(a) - Date.parse(b)) / 86400000);
+const fmt = iso => { if(!iso) return ""; const [y,m,d] = iso.split("-"); return `${d}/${m}/${y}`; };
+const fmtLong = iso => new Date(iso+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; };
+const ls = { get(k,d){ try{ const v = localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} }, set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} } };
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
+
+const TYPES = ["Traitement","Vaccination","Antiparasitaire","Parage","Plaie / blessure","Vêlage","Écornage","Autre"];
+const VOIES = ["IM","SC","IV","Orale","Pour-on","Intramammaire","Intra-utérine","Locale"];
+const UNITES = ["mL","g","dose","bolus","comprimé","seringue","tube","sachet"];
+const BATS = ["A","B","C"], BOXES = ["1","2","3","4"];   // modifiable : bâtiments et box de la ferme
+const ALL_BOXES = BATS.flatMap(b => BOXES.map(x => b + x));
+const empl = a => a && a.batiment ? a.batiment + (a.box || "") : "";
+
+/* ============ Stockage ============ */
+const COLLS = ["animaux","soins","produits"];
+const state = { animaux:[], soins:[], produits:[], mode:"loading", loaded:{} };
+let db = null;
+
+const store = {
+  async init(){
+    let resolved = false;
+    const timer = setTimeout(()=>{ if(!resolved){ setSync("Données injoignables pour l'instant", true); } }, 10000);
+    try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e){ db = null; }
+    if(db){
+      state.mode = "db";
+      COLLS.forEach(c => {
+        db.collection(c).onSnapshot(snap => {
+          state[c] = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+          if(!snap.metadata.fromCache){ state.loaded[c] = true; }
+          if(COLLS.every(k => state.loaded[k])){ resolved = true; clearTimeout(timer); setSync("Synchronisé"); }
+          render();
+        }, err => { resolved = true; clearTimeout(timer); setSync("Erreur de connexion", true); });
+      });
+    } else {
+      resolved = true; clearTimeout(timer);
+      state.mode = "local";
+      COLLS.forEach(c => state[c] = ls.get("soinsapp_"+c, []));
+      try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch(e){}
+      setSync(navigator.onLine === false ? "Hors ligne · données sur la tablette" : "Données sur la tablette");
+      render();
+    }
+  },
+  async save(c, obj){
+    const id = obj.id || uid();
+    const data = { ...obj }; delete data.id;
+    data.maj = new Date().toISOString();
+    if(state.mode === "db"){
+      try { await db.collection(c).doc(id).set(data); }
+      catch(e){ toast(e && e.code === "quota_exceeded" ? "Base pleine : supprimez d'anciennes fiches" : "Enregistrement refusé — vérifiez la connexion"); throw e; }
+    } else {
+      const arr = state[c].filter(x => x.id !== id); arr.push({ id, ...data });
+      state[c] = arr; ls.set("soinsapp_"+c, arr); render();
+    }
+    return id;
+  },
+  async remove(c, id){
+    if(state.mode === "db"){ try{ await db.collection(c).doc(id).delete(); }catch(e){ toast("Suppression impossible"); throw e; } }
+    else { state[c] = state[c].filter(x => x.id !== id); ls.set("soinsapp_"+c, state[c]); render(); }
+  }
+};
+function setSync(t, warn){ const s=$("#sync"); s.textContent=t; s.classList.toggle("warn", !!warn); }
+
+/* ============ Calculs métier ============ */
+const animalByNum = n => state.animaux.find(a => a.numero === n);
+const travail = n => String(n||"").replace(/\s/g,"").slice(-4);
+const animalLabel = (n, place) => { const a = animalByNum(n); const e = place !== undefined ? place : empl(a); return n + (a && a.nom ? " · " + a.nom : "") + (e ? " [" + e + "]" : ""); };
+const inBox = code => state.animaux.filter(a => empl(a) === code || (code.length === 1 && a.batiment === code));
+function finDelais(s){
+  const duree = Math.max(1, num(s.duree) || 1);
+  const dernier = addDays(s.date, duree - 1);
+  const v = num(s.delaiViande), l = num(s.delaiLait);
+  return { dernier, viande: v != null ? addDays(dernier, v) : null, lait: l != null ? addDays(dernier, l) : null };
+}
+function delaisActifs(){
+  const t = today(), out = [];
+  state.soins.forEach(s => {
+    const f = finDelais(s);
+    if((f.viande && f.viande > t) || (f.lait && f.lait > t)){
+      (s.animaux||[]).forEach(n => out.push({ n, s, f }));
+    }
+  });
+  return out.sort((a,b) => (b.f.viande||"").localeCompare(a.f.viande||""));
+}
+function animalSousDelai(n){ return delaisActifs().filter(x => x.n === n); }
+const soinsTries = () => [...state.soins].sort((a,b) => (b.date||"").localeCompare(a.date||"") || (b.maj||"").localeCompare(a.maj||""));
+
+/* ============ Routage ============ */
+const ROUTES = ["accueil","nouveau","registre","animaux","pharmacie"];
+let draft = null;       // formulaire de soin en cours
+let filters = { q:"", type:"", mois:"" };
+let animalQ = "";
+function route(){ const r = location.hash.slice(1); return ROUTES.includes(r) ? r : "accueil"; }
+window.addEventListener("hashchange", () => { if(route()==="nouveau" && !draft) draft = newDraft(); render(); window.scrollTo(0,0); });
+
+function render(){
+  const r = route();
+  document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.r === r));
+  const m = $("#main");
+  // Ne pas reconstruire le formulaire pendant la saisie (évite de perdre le focus)
+  if(r === "nouveau" && m.dataset.view === "nouveau" && m.contains(document.activeElement) && document.activeElement !== document.body){ return; }
+  m.dataset.view = r;
+  let banner = "";
+  if(state.mode === "local"){
+    const lb = ls.get("soinsapp_lastBackup", null);
+    const age = lb ? diffDays(today(), lb) : null;
+    if(state.soins.length && (age === null || age >= 7)) banner = `<div class="banner">Les données sont sur cette tablette uniquement. ${lb ? "Dernière sauvegarde il y a "+age+" jours." : "Aucune sauvegarde faite."} <button class="btn sm" style="margin-left:8px" onclick="sauvegarder()">Sauvegarder maintenant</button></div>`;
+  }
+  m.innerHTML = banner + ({accueil:vAccueil, nouveau:vNouveau, registre:vRegistre, animaux:vAnimaux, pharmacie:vPharmacie})[r]();
+  if(r === "nouveau") bindNouveau();
+}
+
+/* ============ Vue : Accueil ============ */
+function vAccueil(){
+  const t = today(), mois = t.slice(0,7);
+  const actifs = delaisActifs();
+  const rappels = state.soins.filter(s => s.rappel && diffDays(s.rappel, t) <= 30 && !s.rappelFait).sort((a,b)=>a.rappel.localeCompare(b.rappel));
+  const nbMois = state.soins.filter(s => (s.date||"").startsWith(mois)).length;
+  const recent = soinsTries().slice(0,5);
+  return `
+  <a href="#nouveau" style="text-decoration:none" onclick="draft=newDraft()"><button class="big-btn"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>Enregistrer un soin</button></a>
+  <div class="grid g3 sec">
+    <div class="card"><div class="muted small">Soins ce mois-ci</div><div class="stat">${nbMois}</div></div>
+    <div class="card"><div class="muted small">Animaux sous délai d'attente</div><div class="stat" style="color:${actifs.length?'var(--red)':'var(--green)'}">${new Set(actifs.map(a=>a.n)).size}</div></div>
+    <div class="card"><div class="muted small">Animaux enregistrés</div><div class="stat">${state.animaux.length}</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>Délais d'attente en cours</h3>
+      ${actifs.length ? `<div class="list">${actifs.map(({n,s,f}) => `
+        <div class="item"><div class="main"><div class="t">${esc(animalLabel(n))}</div>
+          <div class="small muted">${esc(s.produit||s.type)} · dernier admin. ${fmt(f.dernier)}</div></div>
+          <div style="text-align:right">${f.viande && f.viande>t ? `<div class="badge red">Viande → ${fmt(f.viande)}</div>`:""}
+          ${f.lait && f.lait>t ? `<div class="badge ochre" style="margin-top:4px">Lait → ${fmt(f.lait)}</div>`:""}</div></div>`).join("")}</div>`
+      : `<div class="empty">Aucun animal sous délai d'attente.</div>`}
+    </div>
+    <div class="card"><h3>Rappels (30 prochains jours)</h3>
+      ${rappels.length ? `<div class="list">${rappels.map(s => { const d = diffDays(s.rappel,t); return `
+        <div class="item"><div class="main"><div class="t">${esc((s.animaux||[]).map(animalLabel).join(", "))}</div>
+          <div class="small muted">${esc(s.type)} ${s.produit?"· "+esc(s.produit):""}</div></div>
+          <div style="text-align:right"><div class="badge ${d<0?'red':d<=3?'ochre':''}">${d<0?"En retard · ":""}${fmt(s.rappel)}</div>
+          <div class="row" style="justify-content:flex-end;margin-top:6px"><button class="btn sm" onclick="faireRappel('${s.id}')">Faire le rappel</button><button class="btn sm" onclick="rappelFait('${s.id}')">✓</button></div></div></div>`;}).join("")}</div>`
+      : `<div class="empty">Aucun rappel prévu.</div>`}
+    </div>
+  </div>
+  <div class="card"><div class="row"><h3 style="margin:0">Derniers soins</h3><span class="spacer"></span><a class="btn sm" href="#registre" style="display:inline-flex;align-items:center;text-decoration:none">Tout le registre</a></div>
+    ${recent.length ? `<div class="list" style="margin-top:8px">${recent.map(soinItem).join("")}</div>` : `<div class="empty">Aucun soin enregistré pour l'instant.</div>`}
+  </div>
+  <div class="card"><h3>Exporter</h3><p class="small muted" style="margin-top:0">Registre au format CSV (ouvrable dans Excel / LibreOffice), à conserver 5 ans ou à présenter lors d'un contrôle.</p>
+    <div class="row"><button class="btn" onclick="exporter('soins')">Exporter le registre des soins</button><button class="btn" onclick="exporter('animaux')">Exporter la liste des animaux</button></div></div>
+  <div class="card"><h3>Sauvegarde</h3><p class="small muted" style="margin-top:0">Fichier complet (animaux, soins, pharmacie) pour mettre vos données à l'abri ou les transférer sur un autre appareil. L'import fusionne sans créer de doublons.</p>
+    <div class="row"><button class="btn pri" onclick="sauvegarder()">Sauvegarder tout</button><button class="btn" onclick="restaurer()">Importer une sauvegarde</button>
+    <span class="small muted">${(() => { const lb = ls.get("soinsapp_lastBackup", null); return lb ? "Dernière : " + fmt(lb) : ""; })()}</span></div></div>`;
+}
+
+/* ============ Vue : Nouveau soin ============ */
+function newDraft(base){
+  const last = ls.get("soinsapp_pref", {});
+  return Object.assign({ id:null, date:today(), animaux:[], type:"Traitement", motif:"", produit:"", dose:"", unite:"mL", voie:"", duree:"1",
+    delaiViande:"", delaiLait:"", lotMed:"", ordonnance:"", veto:last.veto||"", intervenant:last.intervenant||"", rappel:"", obs:"" }, base||{});
+}
+function vNouveau(){
+  if(!draft) draft = newDraft();
+  const d = draft;
+  const f = d.date ? finDelais(d) : null;
+  return `
+  <h2>${d.id ? "Modifier le soin" : "Nouveau soin"}</h2>
+  <div class="card">
+    <div class="grid g2">
+      <div><label class="f">Date du soin</label><input type="date" data-k="date" value="${esc(d.date)}"></div>
+      <div><label class="f">Type de soin</label><div class="chips">${TYPES.map(t=>`<button type="button" class="chip ${d.type===t?'on':''}" data-type="${esc(t)}">${esc(t)}</button>`).join("")}</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <label class="f">Animaux traités (numéro, 4 derniers chiffres ou nom)</label>
+    <div id="chosen" class="chips" style="margin-bottom:10px">${chosenChips()}</div>
+    <input type="search" id="animSearch" placeholder="Ex : 4521" autocomplete="off" inputmode="search">
+    <div id="animSugg"></div>
+    <div class="sec"><label class="f">Ou tout un box / bâtiment</label>${boxPicker()}</div>
+  </div>
+  <div class="card">
+    <div class="grid g2">
+      <div><label class="f">Motif / diagnostic</label><input type="text" data-k="motif" value="${esc(d.motif)}" list="dlMotif" placeholder="Ex : boiterie, diarrhée veau…">
+        <datalist id="dlMotif">${[...new Set(state.soins.map(s=>s.motif).filter(Boolean))].map(m=>`<option value="${esc(m)}">`).join("")}</datalist></div>
+      <div><label class="f">Produit / médicament</label><input type="text" data-k="produit" id="fProduit" value="${esc(d.produit)}" list="dlProd" placeholder="Choisir dans la pharmacie ou saisir">
+        <datalist id="dlProd">${state.produits.map(p=>`<option value="${esc(p.nom)}">`).join("")}</datalist></div>
+    </div>
+    <div class="grid g4 sec">
+      <div><label class="f">Dose</label><input type="text" inputmode="decimal" data-k="dose" value="${esc(d.dose)}"></div>
+      <div><label class="f">Unité</label><select data-k="unite">${UNITES.map(u=>`<option ${d.unite===u?'selected':''}>${u}</option>`).join("")}</select></div>
+      <div><label class="f">Durée (jours)</label><input type="number" min="1" inputmode="numeric" data-k="duree" value="${esc(d.duree)}"></div>
+      <div><label class="f">N° lot médicament</label><input type="text" data-k="lotMed" value="${esc(d.lotMed)}"></div>
+    </div>
+    <div class="sec"><label class="f">Voie d'administration</label><div class="chips">${VOIES.map(v=>`<button type="button" class="chip ${d.voie===v?'on':''}" data-voie="${v}">${v}</button>`).join("")}</div></div>
+  </div>
+  <div class="card">
+    <div class="grid g2">
+      <div><label class="f">Délai d'attente viande (jours)</label><input type="number" min="0" inputmode="numeric" data-k="delaiViande" value="${esc(d.delaiViande)}"></div>
+      <div><label class="f">Délai d'attente lait (jours)</label><input type="number" min="0" inputmode="numeric" data-k="delaiLait" value="${esc(d.delaiLait)}"></div>
+    </div>
+    <div id="delaiInfo" class="small" style="margin-top:10px">${delaiInfo(f)}</div>
+  </div>
+  <div class="card">
+    <div class="grid g3">
+      <div><label class="f">N° d'ordonnance</label><input type="text" data-k="ordonnance" value="${esc(d.ordonnance)}"></div>
+      <div><label class="f">Vétérinaire prescripteur</label><input type="text" data-k="veto" value="${esc(d.veto)}"></div>
+      <div><label class="f">Administré par</label><input type="text" data-k="intervenant" value="${esc(d.intervenant)}"></div>
+    </div>
+    <div class="grid g2 sec">
+      <div><label class="f">Rappel à prévoir le (optionnel)</label><input type="date" data-k="rappel" value="${esc(d.rappel)}"></div>
+      <div><label class="f">Observations</label><textarea data-k="obs">${esc(d.obs)}</textarea></div>
+    </div>
+  </div>
+  <div class="row"><button class="btn" onclick="draft=newDraft();location.hash='#accueil'">Annuler</button><span class="spacer"></span>
+    <button class="btn pri" style="min-height:62px;font-size:20px;padding:0 34px" onclick="saveSoin()">Enregistrer le soin</button></div>`;
+}
+function boxPicker(){
+  return `<div class="boxgrid">${BATS.map(b => `<div class="bat"><button type="button" class="chip batbtn" data-box="${b}">Bât. ${b} <span class="muted small">(${inBox(b).length})</span></button>
+    <div class="boxes">${BOXES.map(x => { const c = b+x, n = inBox(c).length; return `<button type="button" class="chip boxbtn" data-box="${c}" ${n?"":"disabled"}>${c}<span class="small">${n}</span></button>`; }).join("")}</div></div>`).join("")}</div>`;
+}
+function chosenChips(){
+  return draft.animaux.length ? draft.animaux.map(n => { const sd = animalSousDelai(n).length; return `<button type="button" class="chip on" data-unpick="${esc(n)}">${esc(animalLabel(n))}${sd?' ⚠':''}<span class="x">×</span></button>`; }).join("") : `<span class="muted small">Aucun animal sélectionné</span>`;
+}
+function delaiInfo(f){
+  if(!f || (!f.viande && !f.lait)) return `<span class="muted">Renseignez les délais pour calculer les dates de fin.</span>`;
+  return `Dernière administration le <b>${fmt(f.dernier)}</b>. ${f.viande?`Viande libre le <span class="badge red">${fmt(f.viande)}</span> `:""}${f.lait?`Lait libre le <span class="badge ochre">${fmt(f.lait)}</span>`:""}`;
+}
+function bindNouveau(){
+  const m = $("#main");
+  m.querySelectorAll("[data-k]").forEach(el => el.addEventListener("input", () => {
+    draft[el.dataset.k] = el.value;
+    if(["date","duree","delaiViande","delaiLait"].includes(el.dataset.k)) $("#delaiInfo").innerHTML = delaiInfo(draft.date ? finDelais(draft) : null);
+  }));
+  $("#fProduit").addEventListener("change", e => {
+    const p = state.produits.find(p => p.nom.toLowerCase() === e.target.value.trim().toLowerCase());
+    if(!p) return;
+    Object.assign(draft, { produit:p.nom, dose:p.dose ?? draft.dose, unite:p.unite||draft.unite, voie:p.voie||draft.voie, delaiViande:p.delaiViande ?? "", delaiLait:p.delaiLait ?? "", duree:p.duree||draft.duree });
+    if(p.type) draft.type = p.type;
+    document.activeElement.blur(); render(); toast("Valeurs de « "+p.nom+" » appliquées");
+  });
+  m.querySelectorAll("[data-type]").forEach(b => b.onclick = () => { draft.type = b.dataset.type; m.querySelectorAll("[data-type]").forEach(x=>x.classList.toggle("on", x===b)); });
+  m.querySelectorAll("[data-voie]").forEach(b => b.onclick = () => { draft.voie = draft.voie===b.dataset.voie ? "" : b.dataset.voie; m.querySelectorAll("[data-voie]").forEach(x=>x.classList.toggle("on", x.dataset.voie===draft.voie)); });
+  m.querySelectorAll("[data-box]").forEach(b => b.onclick = () => { const l = inBox(b.dataset.box); if(!l.length) return toast("Aucun animal dans "+b.dataset.box); l.forEach(a => pick(a.numero, true)); toast(l.length+" animal(aux) ajouté(s)"); });
+  $("#chosen").onclick = e => { const b = e.target.closest("[data-unpick]"); if(b){ draft.animaux = draft.animaux.filter(n => n!==b.dataset.unpick); $("#chosen").innerHTML = chosenChips(); } };
+  const s = $("#animSearch");
+  s.addEventListener("input", () => showSugg(s.value));
+  s.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); const first = $("#animSugg button"); if(first) first.click(); } });
+}
+function showSugg(q){
+  q = q.trim().toLowerCase().replace(/\s/g,"");
+  const box = $("#animSugg");
+  if(!q){ box.innerHTML = ""; return; }
+  const res = state.animaux.filter(a => (a.numero||"").toLowerCase().includes(q) || (a.nom||"").toLowerCase().includes(q)).slice(0,8);
+  const exact = res.some(a => a.numero.toLowerCase() === q);
+  box.innerHTML = `<div class="sugg">${res.map(a => `<button type="button" data-pick="${esc(a.numero)}"><b>${esc(a.numero)}</b> ${a.nom?"· "+esc(a.nom):""} <span class="badge">${esc(empl(a)||"?")}</span></button>`).join("")}
+    ${!exact ? `<button type="button" data-new="${esc(q.toUpperCase())}">＋ Ajouter l'animal <b>${esc(q.toUpperCase())}</b></button>`:""}</div>`;
+  box.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { pick(b.dataset.pick); });
+  box.querySelectorAll("[data-new]").forEach(b => b.onclick = () => quickAdd(b.dataset.new));
+}
+function pick(n, bulk){
+  if(!draft.animaux.includes(n)) draft.animaux.push(n);
+  const c = $("#chosen"); if(c) c.innerHTML = chosenChips();
+  const s = $("#animSearch"); if(s){ s.value = ""; $("#animSugg").innerHTML = ""; if(!bulk) s.focus(); }
+}
+function quickAdd(n){
+  let loc = { batiment:"", box:"" };
+  openSheet(`<h3>Nouvel animal ${esc(n)}</h3><p class="muted small">Où se trouve-t-il ?</p>${locPicker("", "")}
+    <div class="row sec"><span class="spacer"></span><button class="btn" onclick="closeSheet()">Annuler</button><button class="btn pri" id="qaOk">Ajouter</button></div>`);
+  bindLocPicker(v => loc = v);
+  $("#qaOk").onclick = async () => { try { await store.save("animaux", { numero:n, ...loc }); } catch(e){ return; } closeSheet(); pick(n); toast("Animal "+n+" ajouté"); };
+}
+function locPicker(bat, box){
+  return `<div class="row"><span class="small muted" style="width:90px">Bâtiment</span>${BATS.map(b=>`<button type="button" class="chip ${bat===b?'on':''}" data-lb="${b}">${b}</button>`).join("")}</div>
+  <div class="row" style="margin-top:8px"><span class="small muted" style="width:90px">Box</span>${BOXES.map(x=>`<button type="button" class="chip ${box===x?'on':''}" data-lx="${x}">${x}</button>`).join("")}</div>`;
+}
+function bindLocPicker(cb, root){
+  root = root || $("#sheet");
+  const v = { batiment: (root.querySelector("[data-lb].on")||{}).dataset?.lb || "", box: (root.querySelector("[data-lx].on")||{}).dataset?.lx || "" };
+  root.querySelectorAll("[data-lb]").forEach(b => b.onclick = () => { v.batiment = v.batiment===b.dataset.lb ? "" : b.dataset.lb; root.querySelectorAll("[data-lb]").forEach(x=>x.classList.toggle("on", x.dataset.lb===v.batiment)); cb({...v}); });
+  root.querySelectorAll("[data-lx]").forEach(b => b.onclick = () => { v.box = v.box===b.dataset.lx ? "" : b.dataset.lx; root.querySelectorAll("[data-lx]").forEach(x=>x.classList.toggle("on", x.dataset.lx===v.box)); cb({...v}); });
+  cb({...v});
+}
+async function saveSoin(){
+  const d = draft;
+  if(!d.date) return toast("Indiquez la date");
+  if(!d.animaux.length) return toast("Sélectionnez au moins un animal");
+  if(!d.type) return toast("Choisissez le type de soin");
+  ls.set("soinsapp_pref", { veto:d.veto, intervenant:d.intervenant });
+  const obj = { ...d }; if(!obj.id) delete obj.id;
+  // emplacement figé au moment du soin (traçabilité si l'animal change de box)
+  const prev = d.emplacements || {};
+  obj.emplacements = Object.fromEntries(d.animaux.map(n => [n, prev[n] !== undefined && d.id ? prev[n] : empl(animalByNum(n))]));
+  try { await store.save("soins", obj); } catch(e){ return; }
+  toast(d.id ? "Soin modifié" : "Soin enregistré");
+  draft = newDraft(); document.activeElement && document.activeElement.blur();
+  location.hash = "#accueil"; render();
+}
+
+/* ============ Vue : Registre ============ */
+function soinItem(s){
+  const f = finDelais(s), t = today();
+  const actif = (f.viande && f.viande>t) || (f.lait && f.lait>t);
+  return `<div class="item"><div class="main">
+    <div class="t">${esc((s.animaux||[]).map(n => animalLabel(n, (s.emplacements||{})[n])).join(", "))}</div>
+    <div>${esc(s.type)}${s.motif?" — "+esc(s.motif):""}</div>
+    <div class="small muted">${fmt(s.date)}${s.produit?" · "+esc(s.produit):""}${s.dose?" · "+esc(s.dose)+" "+esc(s.unite||""):""}${s.voie?" · "+esc(s.voie):""}${num(s.duree)>1?" · "+esc(s.duree)+" j":""}${s.intervenant?" · par "+esc(s.intervenant):""}</div>
+    ${actif?`<div style="margin-top:4px">${f.viande&&f.viande>t?`<span class="badge red">Viande → ${fmt(f.viande)}</span> `:""}${f.lait&&f.lait>t?`<span class="badge ochre">Lait → ${fmt(f.lait)}</span>`:""}</div>`:""}
+    ${s.obs?`<div class="small" style="margin-top:4px">${esc(s.obs)}</div>`:""}
+  </div><div class="row" style="flex-direction:column;align-items:stretch;gap:6px">
+    <button class="btn sm" onclick="editSoin('${s.id}')">Modifier</button>
+    <button class="btn sm" onclick="dupSoin('${s.id}')">Refaire</button>
+  </div></div>`;
+}
+function vRegistre(){
+  const q = filters.q.toLowerCase();
+  const list = soinsTries().filter(s => {
+    if(filters.type && s.type !== filters.type) return false;
+    if(filters.mois && !(s.date||"").startsWith(filters.mois)) return false;
+    if(q){ const hay = [(s.animaux||[]).map(animalLabel).join(" "), s.produit, s.motif, s.obs, s.veto, s.ordonnance].join(" ").toLowerCase(); if(!hay.includes(q)) return false; }
+    return true;
+  });
+  const groups = {}; list.forEach(s => (groups[s.date] = groups[s.date] || []).push(s));
+  return `<div class="row"><h2 style="margin:0">Registre des soins</h2><span class="spacer"></span><button class="btn sm" onclick="exporter('soins')">Exporter CSV</button></div>
+  <div class="card sec"><div class="grid g3">
+    <div><label class="f">Rechercher</label><input type="search" id="fq" value="${esc(filters.q)}" placeholder="Animal, produit, motif…"></div>
+    <div><label class="f">Type</label><select id="ft"><option value="">Tous</option>${TYPES.map(t=>`<option ${filters.type===t?'selected':''}>${t}</option>`).join("")}</select></div>
+    <div><label class="f">Mois</label><input type="month" id="fm" value="${esc(filters.mois)}" style="width:100%;min-height:54px;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff"></div>
+  </div></div>
+  <div class="muted small">${list.length} soin(s)</div>
+  ${list.length ? Object.keys(groups).map(d => `<div class="datehead">${fmtLong(d)}</div><div class="card list" style="padding-top:2px;padding-bottom:2px">${groups[d].map(soinItem).join("")}</div>`).join("") : `<div class="card empty">Aucun soin ne correspond.</div>`}`;
+}
+document.addEventListener("input", e => {
+  if(e.target.id === "fq"){ filters.q = e.target.value; rerenderKeepFocus("fq"); }
+  if(e.target.id === "aq"){ animalQ = e.target.value; rerenderKeepFocus("aq"); }
+});
+document.addEventListener("change", e => {
+  if(e.target.id === "ft"){ filters.type = e.target.value; render(); }
+  if(e.target.id === "fm"){ filters.mois = e.target.value; render(); }
+});
+function rerenderKeepFocus(id){ const el = $("#"+id), pos = el.selectionStart; document.activeElement.blur(); render(); const n = $("#"+id); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos);}catch(e){} } }
+function editSoin(id){ const s = state.soins.find(x=>x.id===id); if(!s) return; draft = newDraft({ ...s, animaux:[...(s.animaux||[])] }); closeSheet(); location.hash = "#nouveau"; render(); }
+function dupSoin(id){ const s = state.soins.find(x=>x.id===id); if(!s) return; draft = newDraft({ ...s, id:null, date:today(), animaux:[...(s.animaux||[])], rappel:"", rappelFait:false, obs:"" }); closeSheet(); location.hash = "#nouveau"; render(); toast("Soin recopié — vérifiez et enregistrez"); }
+function faireRappel(id){ const s = state.soins.find(x=>x.id===id); if(!s) return; draft = newDraft({ ...s, id:null, date:today(), animaux:[...(s.animaux||[])], rappel:"", rappelFait:false, obs:"Rappel du "+fmt(s.date), rappelDe:id }); location.hash = "#nouveau"; render(); }
+async function rappelFait(id){ const s = state.soins.find(x=>x.id===id); if(!s) return; await store.save("soins", { ...s, rappelFait:true }); toast("Rappel marqué comme fait"); }
+
+/* ============ Vue : Animaux ============ */
+let animalBox = "";
+function vAnimaux(){
+  const q = animalQ.toLowerCase().replace(/\s/g,"");
+  const sousDelai = new Set(delaisActifs().map(x => x.n));
+  const list = [...state.animaux].filter(a => {
+      if(animalBox === "?") { if(empl(a)) return false; }
+      else if(animalBox && !(empl(a) === animalBox || (animalBox.length===1 && a.batiment===animalBox))) return false;
+      return !q || (a.numero||"").toLowerCase().includes(q) || (a.nom||"").toLowerCase().includes(q);
+    })
+    .sort((a,b) => empl(a).localeCompare(empl(b)) || travail(a.numero).localeCompare(travail(b.numero)));
+  const sansEmpl = state.animaux.filter(a => !empl(a)).length;
+  const plan = `<div class="plan">${BATS.map(b => `<div class="planbat"><button class="planhead ${animalBox===b?'on':''}" onclick="animalBox=animalBox==='${b}'?'':'${b}';render()">Bâtiment ${b} · ${inBox(b).length}</button>
+      <div class="planboxes">${BOXES.map(x => { const c=b+x, l=inBox(c), d=l.filter(a=>sousDelai.has(a.numero)).length;
+        return `<button class="planbox ${animalBox===c?'on':''}" onclick="animalBox=animalBox==='${c}'?'':'${c}';render()"><span class="pb-code">Box ${c}</span><span class="pb-n">${l.length}</span>${d?`<span class="badge red">${d} sous délai</span>`:""}</button>`; }).join("")}</div></div>`).join("")}</div>`;
+  return `<div class="row"><h2 style="margin:0">Animaux</h2><span class="spacer"></span><button class="btn pri" onclick="editAnimal()">＋ Ajouter</button></div>
+  <div class="card sec">${plan}
+    <div class="row" style="margin-top:12px">${sansEmpl?`<button class="chip ${animalBox==='?'?'on':''}" onclick="animalBox=animalBox==='?'?'':'?';render()">Sans emplacement (${sansEmpl})</button>`:""}
+    ${animalBox?`<button class="chip" onclick="animalBox='';render()">Tout afficher</button>`:""}
+    ${animalBox && animalBox!=='?' && list.length ? `<span class="spacer"></span><button class="btn sm" onclick="deplacerGroupe('${animalBox}')">Déplacer ${animalBox.length===1?'le bât. ':'le box '}${animalBox}</button><button class="btn sm pri" onclick="soinGroupe('${animalBox}')">＋ Soin pour ${animalBox}</button>`:""}</div></div>
+  <div class="card sec"><input type="search" id="aq" value="${esc(animalQ)}" placeholder="Rechercher par numéro ou nom"></div>
+  <div class="card list">${list.length ? list.map(a => { const n = state.soins.filter(s=>(s.animaux||[]).includes(a.numero)).length;
+    return `<div class="item tap" onclick="ficheAnimal('${esc(a.id)}')"><span class="badge" style="font-size:16px;min-width:46px;text-align:center">${esc(empl(a)||"?")}</span><div class="main"><div class="t">${esc(a.numero)} ${a.nom?"· "+esc(a.nom):""}</div>
+    <div class="small muted">${[a.sexe,a.race,a.naissance?"né(e) le "+fmt(a.naissance):""].filter(Boolean).map(esc).join(" · ")}</div></div>
+    <div style="text-align:right">${sousDelai.has(a.numero)?`<span class="badge red">Sous délai</span><br>`:""}<span class="small muted">${n} soin(s)</span></div></div>`; }).join("")
+    : `<div class="empty">${state.animaux.length?"Aucun animal ici.":"Aucun animal. Ajoutez-les ici, ou directement lors de la saisie d'un soin."}</div>`}</div>`;
+}
+function soinGroupe(code){ draft = newDraft({ animaux: inBox(code).map(a=>a.numero) }); location.hash = "#nouveau"; }
+function deplacerGroupe(code){
+  const l = inBox(code); let loc = {};
+  openSheet(`<h3>Déplacer ${l.length} animal(aux) de ${code}</h3><p class="muted small">Vers :</p>${locPicker("","")}
+    <div class="row sec"><span class="spacer"></span><button class="btn" onclick="closeSheet()">Annuler</button><button class="btn pri" id="mvOk">Déplacer</button></div>`);
+  bindLocPicker(v => loc = v);
+  $("#mvOk").onclick = async () => { if(!loc.batiment || !loc.box) return toast("Choisissez bâtiment et box");
+    for(const a of l){ try { await store.save("animaux", { ...a, ...loc }); } catch(e){ return; } }
+    closeSheet(); animalBox = loc.batiment+loc.box; render(); toast(l.length+" animal(aux) déplacé(s) en "+animalBox); };
+}
+function ficheAnimal(id){
+  const a = state.animaux.find(x=>x.id===id); if(!a) return;
+  const hist = soinsTries().filter(s=>(s.animaux||[]).includes(a.numero));
+  openSheet(`<div class="row"><h2 style="margin:0">${esc(a.numero)} ${a.nom?"· "+esc(a.nom):""}</h2><span class="spacer"></span><button class="btn sm" onclick="closeSheet()">Fermer</button></div>
+    <div class="card sec"><label class="f">Emplacement actuel — touchez pour déplacer</label><div id="ficheLoc">${locPicker(a.batiment||"", a.box||"")}</div></div>
+    <div class="card"><div class="kv">${[["Sexe",a.sexe],["Race",a.race],["Naissance",fmt(a.naissance)],["Notes",a.notes]].filter(x=>x[1]).map(([k,v])=>`<span>${k}</span><span>${esc(v)}</span>`).join("") || `<span class="muted">Aucune info</span><span></span>`}</div>
+    <div class="row sec"><button class="btn sm" onclick="editAnimal('${esc(a.id)}')">Modifier la fiche</button><button class="btn sm pri" onclick="soinPour('${esc(a.numero)}')">＋ Soin pour cet animal</button></div></div>
+    <h3>Historique (${hist.length})</h3><div class="card list">${hist.length?hist.map(soinItem).join(""):`<div class="empty">Aucun soin.</div>`}</div>`);
+  let first = true;
+  bindLocPicker(async v => { if(first){ first = false; return; } if(v.batiment === (a.batiment||"") && v.box === (a.box||"")) return;
+    try { await store.save("animaux", { ...a, ...v }); a.batiment = v.batiment; a.box = v.box; toast("Emplacement : " + (empl(v)||"aucun")); } catch(e){} }, $("#ficheLoc"));
+}
+function soinPour(n){ draft = newDraft({ animaux:[n] }); closeSheet(); location.hash = "#nouveau"; render(); }
+function editAnimal(id){
+  const a = id ? state.animaux.find(x=>x.id===id) : { numero:"", nom:"", sexe:"", race:"", naissance:"", batiment: animalBox && animalBox!=="?" ? animalBox[0] : "", box: animalBox.length===2 ? animalBox[1] : "", notes:"" };
+  openSheet(`<h2>${id?"Modifier l'animal":"Nouvel animal"}</h2>
+   <div class="card"><div class="grid g2">
+    <div><label class="f">Numéro national (ex : FR5512345678)</label><input type="text" id="aNum" value="${esc(a.numero)}" autocapitalize="characters"></div>
+    <div><label class="f">Nom</label><input type="text" id="aNom" value="${esc(a.nom)}"></div>
+    <div><label class="f">Sexe</label><select id="aSexe">${["","Femelle","Mâle","Mâle castré"].map(s=>`<option ${a.sexe===s?'selected':''}>${s}</option>`).join("")}</select></div>
+    <div><label class="f">Race</label><input type="text" id="aRace" value="${esc(a.race)}" list="dlRace"><datalist id="dlRace">${["Charolaise","Limousine","Blonde d'Aquitaine","Salers","Aubrac","Montbéliarde","Croisée"].map(r=>`<option value="${r}">`).join("")}</datalist></div>
+    <div><label class="f">Date de naissance</label><input type="date" id="aNais" value="${esc(a.naissance)}"></div>
+   </div><div class="sec" id="aLoc"><label class="f">Emplacement</label>${locPicker(a.batiment||"", a.box||"")}</div><div class="sec"><label class="f">Notes</label><textarea id="aNotes">${esc(a.notes)}</textarea></div></div>
+   <div class="row">${id?`<button class="btn danger" onclick="delAnimal('${esc(id)}')">Supprimer</button>`:""}<span class="spacer"></span><button class="btn" onclick="closeSheet()">Annuler</button><button class="btn pri" onclick="saveAnimal('${esc(id||"")}')">Enregistrer</button></div>`);
+  bindLocPicker(v => editLoc = v, $("#aLoc"));
+}
+let editLoc = {};
+async function saveAnimal(id){
+  const numero = $("#aNum").value.trim().toUpperCase().replace(/\s/g,"");
+  if(!numero) return toast("Le numéro est obligatoire");
+  const dup = state.animaux.find(a => a.numero===numero && a.id!==id);
+  if(dup) return toast("Ce numéro existe déjà");
+  const old = id ? state.animaux.find(a=>a.id===id) : null;
+  try { await store.save("animaux", { id:id||undefined, numero, nom:$("#aNom").value.trim(), sexe:$("#aSexe").value, race:$("#aRace").value.trim(), naissance:$("#aNais").value, batiment:editLoc.batiment||"", box:editLoc.box||"", notes:$("#aNotes").value.trim() }); } catch(e){ return; }
+  // Renumérotation : mettre à jour les soins liés
+  if(old && old.numero !== numero){
+    for(const s of state.soins.filter(s=>(s.animaux||[]).includes(old.numero))){ await store.save("soins", { ...s, animaux:s.animaux.map(n=>n===old.numero?numero:n) }); }
+  }
+  closeSheet(); toast("Animal enregistré");
+}
+function delAnimal(id){
+  const a = state.animaux.find(x=>x.id===id);
+  confirmBox(`Supprimer la fiche de ${esc(a.numero)} ? Les soins déjà enregistrés sont conservés dans le registre.`, async () => { await store.remove("animaux", id); closeSheet(); toast("Fiche supprimée"); });
+}
+
+/* ============ Vue : Pharmacie ============ */
+function vPharmacie(){
+  const usage = {}; state.soins.forEach(s => { if(s.produit) usage[s.produit] = (usage[s.produit]||0)+1; });
+  const list = [...state.produits].sort((a,b) => (usage[b.nom]||0)-(usage[a.nom]||0) || a.nom.localeCompare(b.nom));
+  return `<div class="row"><h2 style="margin:0">Pharmacie</h2><span class="spacer"></span><button class="btn pri" onclick="editProduit()">＋ Ajouter un produit</button></div>
+  <p class="muted small">Enregistrez vos produits habituels avec leur posologie et leurs délais d'attente : ils se rempliront automatiquement lors de la saisie d'un soin.</p>
+  <div class="card list">${list.length ? list.map(p => `<div class="item tap" onclick="editProduit('${esc(p.id)}')"><div class="main"><div class="t">${esc(p.nom)}</div>
+    <div class="small muted">${[p.type, p.dose?p.dose+" "+(p.unite||""):"", p.voie, num(p.duree)>1?p.duree+" j":""].filter(Boolean).map(esc).join(" · ")}</div></div>
+    <div style="text-align:right">${p.delaiViande!==""&&p.delaiViande!=null?`<span class="badge red">V ${esc(p.delaiViande)} j</span> `:""}${p.delaiLait!==""&&p.delaiLait!=null?`<span class="badge ochre">L ${esc(p.delaiLait)} j</span>`:""}<br><span class="small muted">${usage[p.nom]||0} utilisation(s)</span></div></div>`).join("")
+    : `<div class="empty">Aucun produit enregistré.</div>`}</div>`;
+}
+function editProduit(id){
+  const p = id ? state.produits.find(x=>x.id===id) : { nom:"", type:"Traitement", dose:"", unite:"mL", voie:"", duree:"1", delaiViande:"", delaiLait:"", notes:"" };
+  openSheet(`<h2>${id?"Modifier le produit":"Nouveau produit"}</h2>
+  <div class="card"><div class="grid g2">
+    <div><label class="f">Nom du produit</label><input type="text" id="pNom" value="${esc(p.nom)}"></div>
+    <div><label class="f">Type de soin par défaut</label><select id="pType">${TYPES.map(t=>`<option ${p.type===t?'selected':''}>${t}</option>`).join("")}</select></div>
+  </div><div class="grid g4 sec">
+    <div><label class="f">Dose habituelle</label><input type="text" inputmode="decimal" id="pDose" value="${esc(p.dose)}"></div>
+    <div><label class="f">Unité</label><select id="pUnite">${UNITES.map(u=>`<option ${p.unite===u?'selected':''}>${u}</option>`).join("")}</select></div>
+    <div><label class="f">Voie</label><select id="pVoie"><option></option>${VOIES.map(v=>`<option ${p.voie===v?'selected':''}>${v}</option>`).join("")}</select></div>
+    <div><label class="f">Durée (jours)</label><input type="number" min="1" id="pDuree" value="${esc(p.duree)}"></div>
+  </div><div class="grid g2 sec">
+    <div><label class="f">Délai d'attente viande (jours)</label><input type="number" min="0" id="pDV" value="${esc(p.delaiViande)}"></div>
+    <div><label class="f">Délai d'attente lait (jours)</label><input type="number" min="0" id="pDL" value="${esc(p.delaiLait)}"></div>
+  </div><div class="sec"><label class="f">Notes (posologie selon poids, conservation…)</label><textarea id="pNotes">${esc(p.notes)}</textarea></div></div>
+  <div class="row">${id?`<button class="btn danger" onclick="delProduit('${esc(id)}')">Supprimer</button>`:""}<span class="spacer"></span><button class="btn" onclick="closeSheet()">Annuler</button><button class="btn pri" onclick="saveProduit('${esc(id||"")}')">Enregistrer</button></div>`);
+}
+async function saveProduit(id){
+  const nom = $("#pNom").value.trim(); if(!nom) return toast("Le nom est obligatoire");
+  try { await store.save("produits", { id:id||undefined, nom, type:$("#pType").value, dose:$("#pDose").value.trim(), unite:$("#pUnite").value, voie:$("#pVoie").value, duree:$("#pDuree").value, delaiViande:$("#pDV").value, delaiLait:$("#pDL").value, notes:$("#pNotes").value.trim() }); } catch(e){ return; }
+  closeSheet(); toast("Produit enregistré");
+}
+function delProduit(id){ confirmBox("Supprimer ce produit de la pharmacie ?", async () => { await store.remove("produits", id); closeSheet(); toast("Produit supprimé"); }); }
+
+/* ============ Feuille / confirmation ============ */
+function openSheet(html){ $("#sheet").innerHTML = html; $("#overlay").classList.add("open"); }
+function closeSheet(){ $("#overlay").classList.remove("open"); $("#sheet").innerHTML = ""; }
+$("#overlay").addEventListener("click", e => { if(e.target.id === "overlay") closeSheet(); });
+let _confirmCb = null;
+function confirmBox(msg, cb){ _confirmCb = cb; openSheet(`<h3>Confirmer</h3><p>${msg}</p><div class="row"><span class="spacer"></span><button class="btn" onclick="closeSheet()">Annuler</button><button class="btn danger" onclick="(async()=>{const c=_confirmCb;_confirmCb=null;await c();})()">Supprimer</button></div>`); }
+
+/* ============ Export CSV ============ */
+function csvLine(arr){ return arr.map(v => { const s = String(v ?? ""); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(";"); }
+function buildCsv(kind){
+  if(kind === "animaux"){
+    const rows = [["Numéro","Nom","Sexe","Race","Naissance","Bâtiment","Box","Notes"]];
+    state.animaux.forEach(a => rows.push([a.numero,a.nom,a.sexe,a.race,fmt(a.naissance),a.batiment,a.box,a.notes]));
+    return rows.map(csvLine).join("\r\n");
+  }
+  const rows = [["Date","Animal","Nom","Emplacement","Type","Motif","Produit","Dose","Unité","Voie","Durée (j)","Dernière administration","Délai viande (j)","Fin délai viande","Délai lait (j)","Fin délai lait","N° lot médicament","N° ordonnance","Vétérinaire","Administré par","Observations"]];
+  soinsTries().reverse().forEach(s => { const f = finDelais(s); (s.animaux||[]).forEach(n => rows.push([fmt(s.date), n, (animalByNum(n)||{}).nom, (s.emplacements||{})[n] ?? empl(animalByNum(n)), s.type, s.motif, s.produit, s.dose, s.unite, s.voie, s.duree, fmt(f.dernier), s.delaiViande, fmt(f.viande), s.delaiLait, fmt(f.lait), s.lotMed, s.ordonnance, s.veto, s.intervenant, s.obs])); });
+  return rows.map(csvLine).join("\r\n");
+}
+async function saveFile(filename, data, mime){
+  let dl = null; try { if(window.claude && window.claude.use) dl = await window.claude.use("downloads"); } catch(e){}
+  if(dl){ try { await dl.save({ filename, data }); return true; } catch(e){ return false; } }
+  if(!window.claude){ // application installée sur la tablette : téléchargement direct
+    try { const url = URL.createObjectURL(new Blob([data], { type: mime })); const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 4000); return true; } catch(e){}
+  }
+  return false;
+}
+async function exporter(kind){
+  const csv = "\ufeff" + buildCsv(kind);
+  const filename = (kind==="animaux" ? "animaux_" : "registre_soins_") + today() + ".csv";
+  if(await saveFile(filename, csv, "text/csv")){ toast("Fichier enregistré"); return; }
+  openSheet(`<h3>Export ${kind==="animaux"?"des animaux":"du registre"}</h3><p class="small muted">Copiez ce texte et collez-le dans un tableur (séparateur : point-virgule).</p><pre class="csv">${esc(csv.slice(1))}</pre>
+    <div class="row"><span class="spacer"></span><button class="btn" onclick="closeSheet()">Fermer</button><button class="btn pri" id="cpy">Copier</button></div>`);
+  $("#cpy").onclick = async () => { try { await navigator.clipboard.writeText(csv.slice(1)); toast("Copié"); } catch(e){ toast("Copie refusée — sélectionnez le texte"); } };
+}
+
+/* ============ Sauvegarde complète ============ */
+async function sauvegarder(){
+  const data = JSON.stringify({ app:"registre-soins", version:1, date:new Date().toISOString(), animaux:state.animaux, soins:state.soins, produits:state.produits });
+  const ok = await saveFile("sauvegarde_soins_" + today() + ".json", data, "application/json");
+  if(ok){ ls.set("soinsapp_lastBackup", today()); toast("Sauvegarde enregistrée"); render(); }
+  else toast("Sauvegarde refusée");
+}
+function restaurer(){
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json,application/json";
+  inp.onchange = async () => {
+    const f = inp.files[0]; if(!f) return;
+    let d; try { d = JSON.parse(await f.text()); } catch(e){ return toast("Fichier illisible"); }
+    if(d.app !== "registre-soins") return toast("Ce n'est pas une sauvegarde du registre");
+    let n = 0;
+    for(const c of COLLS){
+      for(const it of (d[c]||[])){
+        if(!it || !it.id) continue;
+        const cur = state[c].find(x => x.id === it.id);
+        if(cur && (cur.maj||"") >= (it.maj||"")) continue;   // garder la version la plus récente
+        const { maj, ...rest } = it;
+        try { await store.save(c, rest); n++; } catch(e){ return; }
+      }
+    }
+    toast(n + " fiche(s) importée(s) ou mises à jour");
+  };
+  inp.click();
+}
+
+/* ============ Démarrage ============ */
+render();
+store.init();
+if(!window.claude && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+window.addEventListener("online", () => state.mode==="local" && setSync("Données sur la tablette"));
+window.addEventListener("offline", () => state.mode==="local" && setSync("Hors ligne · données sur la tablette"));
+</script>
+</body>
+</html>
